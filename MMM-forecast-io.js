@@ -187,11 +187,11 @@ Module.register("MMM-forecast-io", {
     return wrapper;
   },
 
-  isAnyPrecipitation: function (minutely) {
-    if (!minutely) {
+  isAnyPrecipitation: function (hourly) {
+    if (!hourly) {
       return false;
     }
-    var data = this.weatherData.minutely.data;
+    var data = this.weatherData.hourly.data;
     var threshold = this.config.precipitationProbabilityThreshold;
     for (i = 0; i < data.length; i++) {
       if (data[i].precipProbability > threshold) {
@@ -234,7 +234,7 @@ Module.register("MMM-forecast-io", {
     }
     context.restore();
 
-    var data = this.weatherData.minutely.data;
+    var data = this.weatherData.hourly.data;
     var stepSize = Math.round(width / data.length);
     context.save();
     context.strokeStyle = 'white';
