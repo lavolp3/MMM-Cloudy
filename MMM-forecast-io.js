@@ -5,6 +5,7 @@ Module.register("MMM-forecast-io", {
     apiBase: "https://api.darksky.net/forecast",
     units: config.units,
     language: config.language,
+    showIndoorTemperature: false,
     updateInterval: 5 * 60 * 1000, // every 5 minutes
     animationSpeed: 1000,
     initialLoadDelay: 0, // 0 seconds delay
@@ -17,10 +18,12 @@ Module.register("MMM-forecast-io", {
     latitude:  null,
     longitude: null,
     showForecast: true,
+    forecastTableFontSize: 'medium',
     maxDaysForecast: 7,   // maximum number of days to show in forecast
     enablePrecipitationGraph: true,
     alwaysShowPrecipitationGraph: false,
     precipitationGraphWidth: 400,
+    precipitationFillColor: 'white',
     precipitationProbabilityThreshold: 0.1,
     precipitationIntensityScaleTop: 0.2,
     unitTable: {
@@ -92,7 +95,7 @@ Module.register("MMM-forecast-io", {
 
     var units = this.config.unitTable[this.config.units] || 'auto';
 
-    var url = this.config.apiBase+'/'+this.config.apiKey+'/'+this.config.latitude+','+this.config.longitude+'?units='+units+'&lang='+this.config.language;
+    var url = this.config.apiBase + '/' + this.config.apiKey + '/' + this.config.latitude + ',' + this.config.longitude + '?units=' + units + '&lang=' + this.config.language;
     if (this.config.data) {
       // for debugging
       this.processWeather(this.config.data);
@@ -123,6 +126,12 @@ Module.register("MMM-forecast-io", {
   notificationReceived: function(notification, payload, sender) {
     switch(notification) {
       case "DOM_OBJECTS_CREATED":
+        break;
+      case "INDOOR_TEMPERATURE":
+        if (this.config.showIndoorTemperature) {
+          this.roomTemperature = payload;
+          this.updateDom(this.config.animationSpeed);
+        }
         break;
     }
   },
@@ -155,8 +164,8 @@ Module.register("MMM-forecast-io", {
     var large = document.createElement("div");
     large.className = "large light";
 
-    var icon = minutely ? minutely.icon : hourly.icon;
-    var iconClass = this.config.iconTable[hourly.icon];
+    var icon = currentWeather ? currentWeather.icon : hourly.icon;
+    var iconClass = this.config.iconTable[icon];
     var icon = document.createElement("span");
     icon.className = 'big-icon wi ' + iconClass;
     large.appendChild(icon);
@@ -165,6 +174,17 @@ Module.register("MMM-forecast-io", {
     temperature.className = "bright";
     temperature.innerHTML = " " + this.temp + "&deg;";
     large.appendChild(temperature);
+
+    if (this.roomTemperature !== undefined) {
+      var icon = document.createElement("span");
+      icon.className = 'fa fa-home';
+      large.appendChild(icon);
+
+      var temperature = document.createElement("span");
+      temperature.className = "bright";
+      temperature.innerHTML = " " + this.roomTemperature + "&deg;";
+      large.appendChild(temperature);
+    }
 
     var summaryText = minutely ? minutely.summary : hourly.summary;
     var summary = document.createElement("div");
@@ -238,7 +258,7 @@ Module.register("MMM-forecast-io", {
     var stepSize = Math.round(width / data.length);
     context.save();
     context.strokeStyle = 'white';
-    context.fillStyle = 'white';
+    context.fillStyle = this.config.precipitationFillColor;
     context.globalCompositeOperation = 'xor';
     context.beginPath();
     context.moveTo(0, height);
@@ -305,7 +325,7 @@ Module.register("MMM-forecast-io", {
 
     var bar = document.createElement("span");
     bar.className = "bar";
-    bar.innerHTML = "&nbsp;"
+    bar.innerHTML = "&nbsp;";
     var barWidth = Math.round(interval * (rowMaxTemp - rowMinTemp));
     bar.style.width = barWidth + '%';
 
@@ -348,7 +368,7 @@ Module.register("MMM-forecast-io", {
     max = Math.round(max);
 
     var display = document.createElement("table");
-    display.className = "forecast";
+    display.className = this.config.forecastTableFontSize + " forecast";
     for (i = 0; i < filteredDays.length; i++) {
       var day = filteredDays[i];
       var row = this.renderForecastRow(day, min, max);

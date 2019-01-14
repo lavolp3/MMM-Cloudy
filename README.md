@@ -101,6 +101,11 @@ modules: [
       </td>
     </tr>
     <tr>
+      <td><code>showIndoorTemperature</code></td>
+      <td>If you have another module that emits the INDOOR_TEMPERATURE notification, the indoor temperature will be displayed.<br>
+        <br><b>Default value:</b>  <code>false</code>
+      </td>
+    </tr><tr>
       <td><code>apiBase</code></td>
       <td>The Dark Sky API base URL.<br>
         <br><b>Default value:</b>  <code>'https://api.darksky.net/forecast'</code>
@@ -126,14 +131,26 @@ modules: [
     </tr>
     <tr>
       <td><code>alwaysShowPrecipitationGraph</code></td>
-      <td>Force the precipition graph to always show, and not just when it's raining..<br>
+      <td>Force the precipition graph to always show, and not just when it's raining.<br>
         <br><b>Default value:</b>  <code>false</code>
+      </td>
+    </tr>
+     <tr>
+      <td><code>precipitationFillColor</code></td>
+      <td>Choose the color of the precipitation graph. Will accept hex value or color names of Javascript-friendly colors. See <a href="http://www.javascripter.net/faq/colornam.htm">this page</a> for a list of colors. "dodgerblue" appears to best mimic the Dark Sky app.<br>
+        <br><b>Default value:</b>  <code>white</code>
       </td>
     </tr>
     <tr>
       <td><code>precipitationGraphWidth</code></td>
       <td>Width of the precipitation graph element in pixels. Scales height to match.<br>
         <br><b>Default value:</b>  <code>400</code>
+      </td>
+    </tr>
+    <tr>
+      <td><code>forecastTableFontSize</code></td>
+      <td>Sets CSS font style for forecast table. Possible values: <code>'xsmall'</code>, <code>'small'</code>, <code>'medium'</code>, <code>'large'</code>, <code>'xlarge'</code><br>
+        <br><b>Default value:</b>  <code>'medium'</code>
       </td>
     </tr>
     <tr>
