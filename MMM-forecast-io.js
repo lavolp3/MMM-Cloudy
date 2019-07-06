@@ -46,7 +46,8 @@ Module.register("MMM-forecast-io", {
       'thunderstorm':        'wi-thunderstorm',
       'tornado':             'wi-tornado'
     },
-
+    showWeatherBoy: true,
+    wbHeight: 340,
     debug: false
   },
 
@@ -146,7 +147,7 @@ Module.register("MMM-forecast-io", {
     }
 
     if (this.geoLocationLookupFailed) {
-      wrapper.innerHTML = "Geolocaiton lookup failed, please set <i>latitude</i> and <i>longitude</i> in the config for module: " + this.name + ".";
+      wrapper.innerHTML = "Geolocation lookup failed, please set <i>latitude</i> and <i>longitude</i> in the config for module: " + this.name + ".";
       wrapper.className = "dimmed light small";
       return wrapper;
     }
@@ -306,7 +307,7 @@ Module.register("MMM-forecast-io", {
     row.className = "forecast-row";
 
     var dayTextSpan = document.createElement("span");
-    dayTextSpan.className = "forecast-day"
+    dayTextSpan.className = "forecast-day";
     dayTextSpan.innerHTML = this.getDayFromTime(data.time);
     var iconClass = this.config.iconTable[data.icon];
     var icon = document.createElement("span");
@@ -375,6 +376,51 @@ Module.register("MMM-forecast-io", {
       display.appendChild(row);
     }
     return display;
+  },
+
+  renderWeatherBoy: function () {
+    var temp = this.weatherData.currently.temperature;
+    var icon = this.weatherData.currently.icon;
+    var posX, posY;
+    var wbY = this.config.wbHeight;
+    var wbX = Math.Round(wbY * 0.6);
+    var wbSpriteWidth = wbX * 5;
+    switch (icon) {
+        case "clear-day":
+          posY = Math.round(-wbY * 0.115);
+          break;
+        case "rain":
+          posY = Math.round(-wbY * 2.115);
+          break;
+        default:
+          posY = Math.round(-wbY * 1.115);
+          console.log("Weather icon: "+icon);
+    }
+
+    if (temp < 0) {
+      posX = -(wbX * 4);
+    } else if (temp < 10) {
+      posX = -(wbX * 3);
+    } else if (temp < 20) {
+      posX = -(wbX * 2);
+    } else if (temp < 26) {
+      posX = -wbX;
+    } else {
+      posX = 0;
+    }
+
+    var wbContainer = document.creatElement("div");
+    wbContainer.className = "wb-container";
+    var wb = document.createELement("div");
+    wb.id = "weatherboy";
+    wb.style.height = wbY;
+    wb.setAttribute(
+      "style",
+      "height: ${wbY}; width: ${wbX}; background-size: ${wbSpriteWidth} auto; background-position: ${posX} ${posY}"
+    );
+
+    wbContainer.appendChild("wb");
+    return wbContainer;
   },
 
   getLocation: function () {

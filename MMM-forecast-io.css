@@ -73,3 +73,21 @@
 .small.MMM-forecast-io .precipitation-graph {
   width: 300px;
 }
+
+.MMM-forecast-io .wb-container {
+  display: block;
+  text-aling: center;
+}
+
+.MMM-forecast-io #weatherboy {
+  margin: auto auto;
+  background: url(weatherboy.jpg);
+  background-repeat: no-repeat;
+  width: 205px;
+  height: 340px;
+  background-size: 1028px 1060px;
+  background-position: 0px -40px;
+  overflow: hidden;
+  -webkit-filter: invert(1);
+  filter: invert(1);
+}
