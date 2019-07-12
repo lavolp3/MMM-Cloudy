@@ -47,7 +47,8 @@ Module.register("MMM-forecast-io", {
       'thunderstorm':        'wi-thunderstorm',
       'tornado':             'wi-tornado'
     },
-
+    showWeatherBoy: true,
+    wbHeight: 500,
     debug: false
   },
 
@@ -148,7 +149,7 @@ Module.register("MMM-forecast-io", {
     }
 
     if (this.geoLocationLookupFailed) {
-      wrapper.innerHTML = "Geolocaiton lookup failed, please set <i>latitude</i> and <i>longitude</i> in the config for module: " + this.name + ".";
+      wrapper.innerHTML = "Geolocation lookup failed, please set <i>latitude</i> and <i>longitude</i> in the config for module: " + this.name + ".";
       wrapper.className = "dimmed light small";
       return wrapper;
     }
@@ -227,6 +228,7 @@ Module.register("MMM-forecast-io", {
       wrapper.appendChild(this.renderWeatherForecast());
     }
 
+    wrapper.appendChild(this.renderWeatherBoy());
     return wrapper;
   },
 
@@ -431,7 +433,7 @@ renderPrecipitationGraph: function (data) {
     row.className = "forecast-row";
 
     var dayTextSpan = document.createElement("span");
-    dayTextSpan.className = "forecast-day"
+    dayTextSpan.className = "forecast-day";
     dayTextSpan.innerHTML = this.getDayFromTime(data.time);
     var iconClass = this.config.iconTable[data.icon];
     var icon = document.createElement("span");
@@ -509,6 +511,57 @@ renderPrecipitationGraph: function (data) {
       display.appendChild(row);
     }
     return display;
+  },
+
+  renderWeatherBoy: function () {
+    var temp = this.weatherData.currently.temperature;
+    var icon = this.weatherData.currently.icon;
+    var posX, posY;
+    var wbY = this.config.wbHeight;
+    var wbX = Math.round(wbY * 0.6);
+    var wbSpriteWidth = wbX * 7;
+    switch (icon) {
+        case "clear-day":
+          posY = Math.round(-wbY * 0.115);
+          break;
+        case "rain":
+          posY = Math.round(-wbY * 2.115);
+          break;
+        default:
+          posY = Math.round(-wbY * 1.115);
+          console.log("Weather icon: "+icon);
+    }
+
+    if (temp < 0) {
+      posX = -(wbX * 6);
+    } else if (temp < 6) {
+      posX = -(wbX * 5);
+    } else if (temp < 10) {
+      posX = -(wbX * 4);
+    } else if (temp < 18) {
+      posX = -(wbX * 3);
+    } else if (temp < 25) {
+      posX = -(wbX * 2);
+    } else if (temp < 30) {
+      posX = -wbX;
+    } else {
+      posX = 0;
+    }
+
+
+    var wbContainer = document.createElement("div");
+    wbContainer.className = "wb-container";
+    var wb = document.createElement("div");
+    wb.id = "weatherboy";
+
+    wb.style.height = wbY+"px";
+    wb.style.width = wbX+"px";
+    wb.style.backgroundSize = wbSpriteWidth+"px auto";
+    wb.style.backgroundPositionX = posX+"px";
+    wb.style.backgroundPositionY = posY+"px";
+
+    wbContainer.appendChild(wb);
+    return wbContainer;
   },
 
   getLocation: function () {
