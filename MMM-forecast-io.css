@@ -88,7 +88,8 @@
   height: 340px;
   background-size: 1028px 1060px;
   background-position: 0px -40px;
-  */overflow: hidden;
+  */
+  overflow: hidden;
   /*-webkit-filter: invert(1);
   filter: invert(1);*/
 }
