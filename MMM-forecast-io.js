@@ -385,7 +385,7 @@ Module.register("MMM-forecast-io", {
     var posX, posY;
     var wbY = this.config.wbHeight;
     var wbX = Math.round(wbY * 0.6);
-    var wbSpriteWidth = wbX * 5;
+    var wbSpriteWidth = wbX * 7;
     switch (icon) {
         case "clear-day":
           posY = Math.round(-wbY * 0.115);
