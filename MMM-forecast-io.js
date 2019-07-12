@@ -58,7 +58,7 @@ Module.register("MMM-forecast-io", {
   getScripts: function () {
     return [
       'jsonp.js',
-      'moment.js'
+      'moment.js',
       'modules/MMM-forecast-io/node_modules/chart.js/dist/Chart.bundle.js'
     ];
   },
@@ -230,18 +230,6 @@ Module.register("MMM-forecast-io", {
     return wrapper;
   },
 
-    if (this.config.alwaysShowPrecipitationGraph ||
-        (this.config.enablePrecipitationGraph &&
-         this.isAnyPrecipitation(minutely))) {
-      wrapper.appendChild(this.renderPrecipitationGraph());
-    }
-
-    if (this.config.showForecast) {
-      wrapper.appendChild(this.renderWeatherForecast());
-    }
-
-    return wrapper;
-  },
 
   isAnyPrecipitation: function (minutely,hourly) {
     if (!minutely&&!hourly) {
