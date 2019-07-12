@@ -47,7 +47,7 @@ Module.register("MMM-forecast-io", {
       'tornado':             'wi-tornado'
     },
     showWeatherBoy: true,
-    wbHeight: 340,
+    wbHeight: 500,
     debug: false
   },
 
@@ -205,6 +205,7 @@ Module.register("MMM-forecast-io", {
       wrapper.appendChild(this.renderWeatherForecast());
     }
 
+    wrapper.appendChild(this.renderWeatherBoy());
     return wrapper;
   },
 
@@ -383,7 +384,7 @@ Module.register("MMM-forecast-io", {
     var icon = this.weatherData.currently.icon;
     var posX, posY;
     var wbY = this.config.wbHeight;
-    var wbX = Math.Round(wbY * 0.6);
+    var wbX = Math.round(wbY * 0.6);
     var wbSpriteWidth = wbX * 5;
     switch (icon) {
         case "clear-day":
@@ -398,28 +399,34 @@ Module.register("MMM-forecast-io", {
     }
 
     if (temp < 0) {
-      posX = -(wbX * 4);
+      posX = -(wbX * 6);
+    } else if (temp < 6) {
+      posX = -(wbX * 5);
     } else if (temp < 10) {
+      posX = -(wbX * 4);
+    } else if (temp < 18) {
       posX = -(wbX * 3);
-    } else if (temp < 20) {
+    } else if (temp < 25) {
       posX = -(wbX * 2);
-    } else if (temp < 26) {
+    } else if (temp < 30) {
       posX = -wbX;
     } else {
       posX = 0;
     }
 
-    var wbContainer = document.creatElement("div");
-    wbContainer.className = "wb-container";
-    var wb = document.createELement("div");
-    wb.id = "weatherboy";
-    wb.style.height = wbY;
-    wb.setAttribute(
-      "style",
-      "height: ${wbY}; width: ${wbX}; background-size: ${wbSpriteWidth} auto; background-position: ${posX} ${posY}"
-    );
 
-    wbContainer.appendChild("wb");
+    var wbContainer = document.createElement("div");
+    wbContainer.className = "wb-container";
+    var wb = document.createElement("div");
+    wb.id = "weatherboy";
+
+    wb.style.height = wbY+"px";
+    wb.style.width = wbX+"px";
+    wb.style.backgroundSize = wbSpriteWidth+"px auto";
+    wb.style.backgroundPositionX = posX+"px";
+    wb.style.backgroundPositionY = posY+"px";
+
+    wbContainer.appendChild(wb);
     return wbContainer;
   },
 
