@@ -17,7 +17,7 @@
 .MMM-forecast-io .forecast {
   text-align: left;
   min-width: 400px;
-  margin-top: 1ex;
+  margin-top: 2ex;
 }
 
 .MMM-forecast-io .forecast-row {
@@ -26,6 +26,7 @@
 .MMM-forecast-io .forecast-row>span {
   display: table-cell;
   width: 1px;
+  text-align: right;
 }
 
 .MMM-forecast-io .forecast-row .forecast-day {
@@ -40,6 +41,7 @@
 .MMM-forecast-io .forecast-bar {
   display: table;
   overflow: hidden;
+  padding-left: 10px;
 }
 
 .MMM-forecast-io .forecast-bar>span {
@@ -48,7 +50,8 @@
 }
 
 .MMM-forecast-io .forecast-bar .bar {
-  background-color: #aaa;
+  #background-color: #aaa;
+  background-image: url("barcolors.png");
   line-height: 0.8em;
   border-radius: 1em;
   border: 0.5ex transparent solid;
@@ -56,29 +59,26 @@
   color: black;
 }
 
+.MMM-forecast-io .canvasContainer {
+  position: relative;
+  top: 15px;
+}
+
+.MMM-forecast-io .precipitation-bg {
+  top: 12.5px;
+  /*border: 2px solid #cccccc;
+  padding: 5px;*/
+}
+
 .MMM-forecast-io .precipitation-graph {
-  border: 1px solid #aaa;
-  margin-top: 1ex;
-}
-<<<<<<< HEAD
-=======
-
-.small.MMM-forecast-io .forecast {
-  min-width: 200px;
-  max-width: 300px;
-}
-
-.small.MMM-forecast-io .summary {
-  width: 300px;
-}
-
-.small.MMM-forecast-io .precipitation-graph {
-  width: 300px;
+  position:absolute;
+  top: 0px;
+  left: 0px;
 }
 
 .MMM-forecast-io .wb-container {
   display: block;
-  text-aling: center;
+  text-align: center;
 }
 
 .MMM-forecast-io #weatherboy {
@@ -95,4 +95,3 @@
   /*-webkit-filter: invert(1);
   filter: invert(1);*/
 }
->>>>>>> 3eaec3a69fb65891012037efc024ce84c6a4cd41

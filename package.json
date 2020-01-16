@@ -1,0 +1,22 @@
+{
+  "name": "mmm-forecast-io",
+  "version": "1.0.0",
+  "description": "This an extension for [MagicMirror](https://github.com/MichMich/MagicMirror) that adds localized weather using the [Dark Sky API](https://darksky.net/dev/) (originally Forecast.io) -- the same service that powers the [Dark Sky App](https://darksky.net/app/).",
+  "main": "MMM-forecast-io.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lavolp3/MMM-forecast-io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lavolp3/MMM-forecast-io/issues"
+  },
+  "homepage": "https://github.com/lavolp3/MMM-forecast-io#readme",
+  "dependencies": {
+    "chart.js": "^2.8.0"
+  }
+}
