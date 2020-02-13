@@ -81,22 +81,54 @@
   padding: 5px;*/
 }
 
-.MMM-forecast-io .wb-container {
-  display: block;
-  text-align: center;
+.MMM-forecast-io .bright:after {
+  content: "C";
 }
 
-.MMM-forecast-io #weatherboy {
-  margin: auto auto;
-  margin-top: 40px;
-  background: url(weatherboy2.jpg);
-  background-repeat: no-repeat;
-  /*width: 205px;
-  height: 340px;
-  background-size: 1028px 1060px;
-  background-position: 0px -40px;
-  */
-  overflow: hidden;
-  /*-webkit-filter: invert(1);
-  filter: invert(1);*/
+.MMM-forecast-io .wi-day-sunny {
+  color: yellow;
+}
+
+.MMM-forecast-io .wi-day-cloudy {
+  color: LightSkyBlue;
+}
+
+.MMM-forecast-io .wi-night-cloudy {
+  color: LightSkyBlue;
+}
+
+.MMM-forecast-io .wi-snow {
+  color: white;
+}
+
+.MMM-forecast-io .wi-rain {
+  color: DeepSkyBlue;
+}
+
+.MMM-forecast-io .wi-cloudy-gusts {
+  color: DeepSkyBlue;
+}
+
+.MMM-forecast-io .wi-day-cloudy {
+  color: Gold;
+}
+
+.MMM-forecast-io .wi-sunset {
+  color: Gold;
+}
+
+.MMM-forecast-io .wi-sunrise {
+  color: Gold;
+}
+
+.MMM-forecast-io .forecast-row .forecast-precip-prob {
+font-size: 85%;
+}
+
+.MMM-forecast-io .forecast {
+  width: 350px;
+}
+
+.MMM-forecast-io .extras {
+  margin-top: 10px;
 }
