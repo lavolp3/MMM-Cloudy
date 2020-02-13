@@ -48,8 +48,6 @@ Module.register("MMM-forecast-io", {
       'thunderstorm':        'wi-thunderstorm',
       'tornado':             'wi-tornado'
     },
-    showWeatherBoy: true,
-    wbHeight: 500,
     debug: false
   },
 
@@ -61,7 +59,7 @@ Module.register("MMM-forecast-io", {
     return [
       'jsonp.js',
       'moment.js',
-      'modules/MMM-forecast-io/node_modules/chart.js/dist/Chart.bundle.js'
+      this.file('node_modules/chart.js/dist/Chart.bundle.js')
     ];
   },
 
@@ -222,11 +220,14 @@ Module.register("MMM-forecast-io", {
 
     var cc = document.createElement("div");
     cc.className = "canvasContainer";
+    cc.width = this.config.precipitationGraphWidth;
+    cc.height = Math.floor(cc.width * 0.5);
 
     if (this.config.alwaysShowPrecipitationGraph ||
         (this.config.enablePrecipitationGraph &&
          this.isAnyPrecipitation(minutely,hourly))) {
-      cc.appendChild(this.renderBackground(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
+      cc.appendChild(this.renderCloudBars(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
+      //cc.appendChild(this.renderBackground(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
       cc.appendChild(this.renderPrecipitationGraph(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
       wrapper.appendChild(cc);
     }
@@ -235,7 +236,6 @@ Module.register("MMM-forecast-io", {
       wrapper.appendChild(this.renderWeatherForecast());
     }
 
-    wrapper.appendChild(this.renderWeatherBoy());
     return wrapper;
   },
 
@@ -255,10 +255,93 @@ Module.register("MMM-forecast-io", {
   },
 
 
-  renderBackground: function(data) {    // ======= shade blocks for daylight hours
+  renderCloudBars: function(data) {
+    var barCanvas = document.createElement('canvas');
+    barCanvas.className = "cloudBarGraph";
+    barCanvas.width  = this.config.precipitationGraphWidth;
+    barCanvas.height = Math.floor(barCanvas.width * 0.5);
+    barCanvas.style.display = "block";
+    var barContext = barCanvas.getContext('2d');
+    var clouds = [], sun = [], times = [], cloudColors = [], sunColors = [], times = [];
+    for (var i = 0; i < data.length; i++) {
+      clouds.push(data[i].cloudCover);
+      sun.push(1 - data[i].cloudCover);
+      if (moment(data[i].time * 1000).hour() == 11) {
+        times[i] = moment(data[i].time * 1000).format('dd');
+      } else {
+        times[i] = "";
+      }
+      //console.log("Times: "+times);
+      var sunriseHour = moment(this.weatherData.daily.data[0].sunriseTime, "X").hours();
+      var sunsetHour = moment(this.weatherData.daily.data[0].sunsetTime, "X").hours();
+      var currentHour = moment(data[i].time, "X").hours();
+      if ((currentHour < sunsetHour) && (currentHour > sunriseHour)) {
+        cloudColors.push('#d8dddf');
+        sunColors.push('#ffe54c')
+      } else {
+        cloudColors.push('#232323');
+        sunColors.push('#546bab')
+      }
+    }
+
+    Chart.defaults.global.defaultFontSize = 12;
+
+    var cloudBars = new Chart(barContext, {
+      type: 'bar',
+        data: {
+          labels: times,
+          datasets: [
+            {
+              label: "clouds",
+              data: clouds,
+              backgroundColor: cloudColors,
+            },
+            {
+              label: "sun",
+              data: sun,
+              backgroundColor: sunColors,
+            }
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          responsive: false,
+          scales: {
+            yAxes: [{
+              stacked: true,
+              display: false,
+            }],
+            xAxes: [{
+              stacked: true,
+              //display: false,
+              barPercentage: 1,
+              categoryPercentage: 0.9,
+              ticks: {
+                //display: false,
+                fontColor: '#DDD',
+                fontSize: 18,
+                source: 'auto',
+                maxRotation: 0,
+                minRotation: 0,
+                mirror: true,
+              },
+            }]
+          },
+          legend: { display: false },
+          layout: {
+            padding: 0,
+          },
+          cubicInterpolationMode: "default",
+        }
+      });
+    return barCanvas;
+  },
+
+
+  /*renderBackground: function(data) {    // ======= shade blocks for daylight hours
     var i;
     var width = this.config.precipitationGraphWidth;
-    var height = Math.round(width * 0.5);
+    var height = Math.round(width * 0.4) + 100;
     var bgCanvas = document.createElement('canvas');
     bgCanvas.className = "precipitation-bg";
     bgCanvas.width  = width;
@@ -277,7 +360,7 @@ Module.register("MMM-forecast-io", {
     var timeUntilSunset;
     var sunrisePixels;    // daytime shade box location on graph
     var sunsetPixels;
-    bgContext.fillStyle = "#323232";
+    bgContext.fillStyle = "#767676";
 
     for (i = 0; i < 3; i++) {                // 3 days ([0]..[2])
       timeUntilSunrise = (this.weatherData.daily.data[i].sunriseTime - now);
@@ -292,18 +375,18 @@ Module.register("MMM-forecast-io", {
 
       sunrisePixels = (timeUntilSunrise/60/60)*stepSize;
       sunsetPixels  = (timeUntilSunset/60/60)*stepSize;
-      bgContext.fillRect(sunrisePixels, 1, (sunsetPixels-sunrisePixels), height-36);
+      bgContext.fillRect(sunrisePixels, 1, (sunsetPixels-sunrisePixels), height-35);
       bgContext.strokeRect(0, 0, width, height);
     }
 
     bgContext.beginPath();
-    bgContext.lineWidth = "4";
-    bgContext.strokeStyle = "#323232";
-    bgContext.rect(1, 1, width, height-36);
+    bgContext.lineWidth = "3";
+    bgContext.strokeStyle = "#bababa";
+    bgContext.rect(1, 1, width-3, height-33);
     bgContext.stroke();
 
     return bgCanvas;
-  },
+  },*/
 
   renderPrecipitationGraph: function (data) {
     moment.locale(this.config.language);
@@ -335,13 +418,13 @@ Module.register("MMM-forecast-io", {
         times[i] = "";
       }
     }
-    //console.log("Times: "+times);
+    console.log("Times: "+times);
     //console.log("Rendering graph with: " + intensity + ", " + times);
 
     Chart.defaults.global.defaultFontSize = 12;
 
     var rainChart = new Chart(context, {
-      type: 'line',
+      type: 'bar',
         data: {
           labels: times,
           datasets: [{
@@ -352,6 +435,8 @@ Module.register("MMM-forecast-io", {
           }],
         },
         options: {
+          maintainAspectRatio: false,
+          responsive: false,
           scales: {
             gridLines: {
               display: true,
@@ -359,23 +444,15 @@ Module.register("MMM-forecast-io", {
             yAxes: [{
               display: false,
               ticks: {
-                suggestedMax: 2,
+                suggestedMax: 1.5,
               }
             }],
             xAxes: [{
-              /*type: "time",
-              time: {
-                unit: 'day',
-                unitStepSize: 1,
-                displayFormats: {
-                  day: 'dd'
-                },
-              },*/
-
+              barPercentage: 1,
+              categoryPercentage: 1,
               ticks: {
                 fontColor: '#DDD',
                 fontSize: 18,
-                //maxTicksLimit: 3,
                 source: 'auto',
                 maxRotation: 0,
                 minRotation: 0,
@@ -392,29 +469,6 @@ Module.register("MMM-forecast-io", {
       });
     return graph;
   },
-  /*
-  var third = Math.round(height / 3);
-  context.beginPath();
-  context.strokeStyle = 'light gray';
-    context.setLineDash([5, 5]);
-    context.lineWidth = 1;
-  var modRain = Math.round(height*2.5/maxIntensity);
-  console.log("ModRain: "+modRain);
-    var heavyRain = Math.round(height*7.6/maxIntensity);
-  console.log("HeavyRain: "+heavyRain);
-  var rainLines = [modRain, heavyRain];
-  for (var r in rainLines) {	//light rain: < 2.5 mm (0.098 in), moderate: - 7.6 mm (0.30 in) heavy > 7.6 mm (0.30 in), violent > 50 mm (2.0 in)
-      //console.log("r "+rainLines[r]);
-      context.moveTo(0, height-rainLines[r]);
-      context.lineTo(width-80, height-rainLines[r]);
-    context.stroke();
-    }
-    context.closePath();
-    context.font = "18px Verdana";
-    context.fillStyle = "gray";
-    context.fillText("Medium",width-80, height-rainLines[0]);
-    return graph;
-  },*/
 
   getDayFromTime: function (time) {
     var dt = new Date(time * 1000);
@@ -514,57 +568,6 @@ Module.register("MMM-forecast-io", {
       display.appendChild(row);
     }
     return display;
-  },
-
-  renderWeatherBoy: function () {
-    var temp = this.weatherData.currently.temperature;
-    var icon = this.weatherData.currently.icon;
-    var posX, posY;
-    var wbY = this.config.wbHeight;
-    var wbX = Math.round(wbY * 0.6);
-    var wbSpriteWidth = wbX * 7;
-    switch (icon) {
-        case "clear-day":
-          posY = Math.round(-wbY * 0.115);
-          break;
-        case "rain":
-          posY = Math.round(-wbY * 2.115);
-          break;
-        default:
-          posY = Math.round(-wbY * 1.115);
-          console.log("Weather icon: "+icon);
-    }
-
-    if (temp < 5) {
-      posX = -(wbX * 6);
-    } else if (temp < 8) {
-      posX = -(wbX * 5);
-    } else if (temp < 14) {
-      posX = -(wbX * 4);
-    } else if (temp < 18) {
-      posX = -(wbX * 3);
-    } else if (temp < 24) {
-      posX = -(wbX * 2);
-    } else if (temp < 29) {
-      posX = -wbX;
-    } else {
-      posX = 0;
-    }
-
-
-    var wbContainer = document.createElement("div");
-    wbContainer.className = "wb-container";
-    var wb = document.createElement("div");
-    wb.id = "weatherboy";
-
-    wb.style.height = wbY+"px";
-    wb.style.width = wbX+"px";
-    wb.style.backgroundSize = wbSpriteWidth+"px auto";
-    wb.style.backgroundPositionX = posX+"px";
-    wb.style.backgroundPositionY = posY+"px";
-
-    wbContainer.appendChild(wb);
-    return wbContainer;
   },
 
   getLocation: function () {

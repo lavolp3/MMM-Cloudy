@@ -64,16 +64,21 @@
   top: 15px;
 }
 
-.MMM-forecast-io .precipitation-bg {
-  top: 12.5px;
-  /*border: 2px solid #cccccc;
-  padding: 5px;*/
+.MMM-forecast-io .cloudBarGraph {
+  left: 0px;
+  top: 0px;
 }
 
 .MMM-forecast-io .precipitation-graph {
   position:absolute;
   top: 0px;
   left: 0px;
+}
+
+.MMM-forecast-io .precipitation-bg {
+  top: 12.5px;
+  /*border: 2px solid #cccccc;
+  padding: 5px;*/
 }
 
 .MMM-forecast-io .wb-container {
