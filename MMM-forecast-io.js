@@ -20,12 +20,13 @@ Module.register("MMM-forecast-io", {
     showForecast: true,
     forecastTableFontSize: 'medium',
     maxDaysForecast: 7,   // maximum number of days to show in forecast
+    fcBarOffset: 20,
     showSunriseSunset: true,
     enablePrecipitationGraph: true,
     alwaysShowPrecipitationGraph: false,
     precipitationGraphWidth: 400,
     precipitationFillColor: 'white',
-    precipitationProbabilityThreshold: 0.1,
+    precipitationProbabilityThreshold: 0,
     precipitationIntensityScaleTop: 0.2,
     unitTable: {
       'default':  'auto',
@@ -47,8 +48,6 @@ Module.register("MMM-forecast-io", {
       'thunderstorm':        'wi-thunderstorm',
       'tornado':             'wi-tornado'
     },
-    showWeatherBoy: true,
-    wbHeight: 500,
     debug: false
   },
 
@@ -60,7 +59,7 @@ Module.register("MMM-forecast-io", {
     return [
       'jsonp.js',
       'moment.js',
-      'modules/MMM-forecast-io/node_modules/chart.js/dist/Chart.bundle.js'
+      this.file('node_modules/chart.js/dist/Chart.bundle.js')
     ];
   },
 
@@ -75,6 +74,7 @@ Module.register("MMM-forecast-io", {
 
   start: function () {
     Log.info("Starting module: " + this.name);
+    moment.locale(config.language);
 
     // still accept the old config
     if (this.config.hasOwnProperty("showPrecipitationGraph")) {
@@ -170,9 +170,9 @@ Module.register("MMM-forecast-io", {
 
     var icon = currentWeather ? currentWeather.icon : hourly.icon;
     var iconClass = this.config.iconTable[icon];
-    var icon = document.createElement("span");
-    icon.className = 'big-icon wi ' + iconClass;
-    large.appendChild(icon);
+    var iconSpan = document.createElement("span");
+    iconSpan.className = 'big-icon wi ' + iconClass;
+    large.appendChild(iconSpan);
 
     var temperature = document.createElement("span");
     temperature.className = "bright";
@@ -180,14 +180,14 @@ Module.register("MMM-forecast-io", {
     large.appendChild(temperature);
 
     if (this.roomTemperature !== undefined) {
-      var icon = document.createElement("span");
-      icon.className = 'fa fa-home';
-      large.appendChild(icon);
+      var iconRT = document.createElement("span");
+      iconRT.className = 'fa fa-home';
+      large.appendChild(iconRT);
 
-      var temperature = document.createElement("span");
-      temperature.className = "bright";
-      temperature.innerHTML = " " + this.roomTemperature + "&deg;";
-      large.appendChild(temperature);
+      var temperatureRT = document.createElement("span");
+      temperatureRT.className = "bright";
+      temperatureRT.innerHTML = " " + this.roomTemperature + "&deg;";
+      large.appendChild(temperatureRT);
     }
 
     var sunriseSunset = document.createElement("div");
@@ -218,17 +218,24 @@ Module.register("MMM-forecast-io", {
       wrapper.appendChild(sunriseSunset);
     }
 
+    var cc = document.createElement("div");
+    cc.className = "canvasContainer";
+    cc.width = this.config.precipitationGraphWidth;
+    cc.height = Math.floor(cc.width * 0.5);
+
     if (this.config.alwaysShowPrecipitationGraph ||
         (this.config.enablePrecipitationGraph &&
          this.isAnyPrecipitation(minutely,hourly))) {
-      wrapper.appendChild(this.renderPrecipitationGraph(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
+      cc.appendChild(this.renderCloudBars(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
+      //cc.appendChild(this.renderBackground(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
+      cc.appendChild(this.renderPrecipitationGraph(minutely?this.weatherData.minutely.data:this.weatherData.hourly.data));
+      wrapper.appendChild(cc);
     }
 
     if (this.config.showForecast) {
       wrapper.appendChild(this.renderWeatherForecast());
     }
 
-    wrapper.appendChild(this.renderWeatherBoy());
     return wrapper;
   },
 
@@ -247,33 +254,113 @@ Module.register("MMM-forecast-io", {
     return false;
   },
 
-renderPrecipitationGraph: function (data) {
+
+  renderCloudBars: function(data) {
+    var barCanvas = document.createElement('canvas');
+    barCanvas.className = "cloudBarGraph";
+    barCanvas.width  = this.config.precipitationGraphWidth;
+    barCanvas.height = Math.floor(barCanvas.width * 0.5);
+    barCanvas.style.display = "block";
+    var barContext = barCanvas.getContext('2d');
+    var clouds = [], sun = [], times = [], cloudColors = [], sunColors = [], times = [];
+    for (var i = 0; i < data.length; i++) {
+      clouds.push(data[i].cloudCover);
+      sun.push(1 - data[i].cloudCover);
+      if (moment(data[i].time * 1000).hour() == 11) {
+        times[i] = moment(data[i].time * 1000).format('dd');
+      } else {
+        times[i] = "";
+      }
+      //console.log("Times: "+times);
+      var sunriseHour = moment(this.weatherData.daily.data[0].sunriseTime, "X").hours();
+      var sunsetHour = moment(this.weatherData.daily.data[0].sunsetTime, "X").hours();
+      var currentHour = moment(data[i].time, "X").hours();
+      if ((currentHour < sunsetHour) && (currentHour > sunriseHour)) {
+        cloudColors.push('#d8dddf');
+        sunColors.push('#ffe54c')
+      } else {
+        cloudColors.push('#232323');
+        sunColors.push('#546bab')
+      }
+    }
+
+    Chart.defaults.global.defaultFontSize = 12;
+
+    var cloudBars = new Chart(barContext, {
+      type: 'bar',
+        data: {
+          labels: times,
+          datasets: [
+            {
+              label: "clouds",
+              data: clouds,
+              backgroundColor: cloudColors,
+            },
+            {
+              label: "sun",
+              data: sun,
+              backgroundColor: sunColors,
+            }
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          responsive: false,
+          scales: {
+            yAxes: [{
+              stacked: true,
+              display: false,
+            }],
+            xAxes: [{
+              stacked: true,
+              //display: false,
+              barPercentage: 1,
+              categoryPercentage: 0.9,
+              ticks: {
+                //display: false,
+                fontColor: '#DDD',
+                fontSize: 18,
+                source: 'auto',
+                maxRotation: 0,
+                minRotation: 0,
+                mirror: true,
+              },
+            }]
+          },
+          legend: { display: false },
+          layout: {
+            padding: 0,
+          },
+          cubicInterpolationMode: "default",
+        }
+      });
+    return barCanvas;
+  },
+
+
+  /*renderBackground: function(data) {    // ======= shade blocks for daylight hours
     var i;
     var width = this.config.precipitationGraphWidth;
-    var height = Math.round(width * 0.5);
-    var element = document.createElement('canvas');
-    element.className = "precipitation-graph";
-    element.width  = width;
-    element.height = height;
-    var context = element.getContext('2d');
+    var height = Math.round(width * 0.4) + 100;
+    var bgCanvas = document.createElement('canvas');
+    bgCanvas.className = "precipitation-bg";
+    bgCanvas.width  = width;
+    bgCanvas.height = height;
+    bgCanvas.style.display = "block";
+
+    var bgContext = bgCanvas.getContext('2d');
+
+    var now = new Date();
+    now = Math.floor(now / 1000);    // current time in Unix format
 
 
     var stepSize = Math.round(width / data.length);
-    //context.globalCompositeOperation = 'xor';
-    var threshold = this.config.precipitationProbabilityThreshold;
-    var intensity;
 
-    //context.save();
-
-    // ======= shade blocks for daylight hours
-    var now = new Date();
-    now = Math.floor(now / 1000);    // current time in Unix format
     var timeUntilSunrise;
     var timeUntilSunset;
     var sunrisePixels;    // daytime shade box location on graph
     var sunsetPixels;
-    context.fillStyle = "#545454";
-    //context.save();
+    bgContext.fillStyle = "#767676";
 
     for (i = 0; i < 3; i++) {                // 3 days ([0]..[2])
       timeUntilSunrise = (this.weatherData.daily.data[i].sunriseTime - now);
@@ -288,134 +375,99 @@ renderPrecipitationGraph: function (data) {
 
       sunrisePixels = (timeUntilSunrise/60/60)*stepSize;
       sunsetPixels  = (timeUntilSunset/60/60)*stepSize;
-      context.fillRect(sunrisePixels, 1, (sunsetPixels-sunrisePixels), height);
+      bgContext.fillRect(sunrisePixels, 1, (sunsetPixels-sunrisePixels), height-35);
+      bgContext.strokeRect(0, 0, width, height);
     }
-    //context.restore();
 
-/*
+    bgContext.beginPath();
+    bgContext.lineWidth = "3";
+    bgContext.strokeStyle = "#bababa";
+    bgContext.rect(1, 1, width-3, height-33);
+    bgContext.stroke();
 
-    console.log("Rendering graph with: " + data);
+    return bgCanvas;
+  },*/
+
+  renderPrecipitationGraph: function (data) {
+    moment.locale(this.config.language);
+    var i;
+    var width = this.config.precipitationGraphWidth;
+    var height = Math.round(width * 0.5);
+    var graph = document.createElement('canvas');
+    graph.className = "precipitation-graph";
+    graph.width  = width;
+    graph.height = height;
+    graph.style.display = "block";
+
+    var context = graph.getContext('2d');
+
+    var threshold = this.config.precipitationProbabilityThreshold;
     var intensity = [];
+    var times = [];
+
+
     for (i = 0; i < data.length; i++) {
       if (data[i].precipProbability < threshold) {
         intensity[i] = 0;
       } else {
         intensity[i] = data[i].precipIntensity;
       }
-    }
-    Chart.defaults.global.defaultFontSize = 12;
-    //var gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    //gradient.addColorStop(1, "rgba(140,170,250,1)");
-    //gradient.addColorStop(0, "rgba(0,0,70,1)");
-    var rainChart = new Chart(context, {
-      type: 'line',
-      data: {
-        //labels: times,
-        datasets: [{
-          data: intensity,
-          backgroundColor: 'blue',
-          borderWidth: 1,
-          pointRadius: 0,
-          fill: 'origin'
-        }],
-      },
-      options: {
-        animation: {
-          duration: 0,
-        },
-        scales: {
-          yAxes: [{
-            display: false,
-            ticks: {
-              //suggestedMin: 10,
-            }
-          }],
-          xAxes: [{
-            ticks: {
-              fontColor: '#DDD',
-              fontSize: 16,
-              maxTicksLimit: 7,
-            }
-          }]
-        },
-        legend: { display: false, },
-        borderColor: 'white',
-        borderWidth: 1,
-        cubicInterpolationMode: "default",
-      }
-    })
-    return element
-  },
-
-*/
-
-	// figure out how we're going to scale our graph
-    var maxIntensity = 0;
-
-    for (i = 0; i < data.length; i++) {
-      maxIntensity = Math.max(maxIntensity, data[i].precipIntensity);
-	  //console.log(data[i].precipIntensity);
-    }
-	// if current intensity is above our normal scale top, make that the top
-    if (maxIntensity < this.config.precipitationIntensityScaleTop) {
-      maxIntensity = this.config.precipitationIntensityScaleTop;
-    }
-
-	// ======== draw precipitation graph
-    context.beginPath();
-    context.strokeStyle = "#000000"//this.config.precipitationFillColor;
-    context.fillStyle = this.config.precipitationFillColor;
-    context.moveTo(0, height);
-    for (i = 0; i < data.length; i++) {
-      if (data[i].precipProbability < threshold) {
-        intensity = 0;
+      if (moment(data[i].time * 1000).hour() == 11) {
+        times[i] = moment(data[i].time * 1000).format('dd');
       } else {
-        intensity = height * (data[i].precipIntensity / maxIntensity);
+        times[i] = "";
       }
-      context.lineTo(i * stepSize, height - intensity);
     }
-    context.lineTo(width, height);
-    context.closePath();
-    context.fill();
-    context.stroke();
-	//context.save();
+    console.log("Times: "+times);
+    //console.log("Rendering graph with: " + intensity + ", " + times);
 
-	// ===== 6hr tick lines
-    var tickCount = Math.round(width / (stepSize*6));
-    context.font = '12px Arial';
-    context.fillStyle = 'white';
-    context.strokeStyle = 'white';
-    context.lineWidth = 2;
-    for (i = 1; i < tickCount; i++) {
-        context.moveTo(i * (stepSize*6), height);
-        context.lineTo(i * (stepSize*6), height - 7);
-	context.stroke();
-	context.fillText(moment().clone().add(i*6, 'hours').format('HH')+':00',i * (stepSize*6)-10, height - 15);
-	}
+    Chart.defaults.global.defaultFontSize = 12;
 
-	// context.restore();
-
-	var third = Math.round(height / 3);
-	context.beginPath();
-	context.strokeStyle = 'light gray';
-    context.setLineDash([5, 5]);
-    context.lineWidth = 1;
-	var modRain = Math.round(height*2.5/maxIntensity);
-	console.log("ModRain: "+modRain);
-    var heavyRain = Math.round(height*7.6/maxIntensity);
-	console.log("HeavyRain: "+heavyRain);
-	var rainLines = [modRain, heavyRain];
-	for (var r in rainLines) {	//light rain: < 2.5 mm (0.098 in), moderate: - 7.6 mm (0.30 in) heavy > 7.6 mm (0.30 in), violent > 50 mm (2.0 in)
-      //console.log("r "+rainLines[r]);
-      context.moveTo(0, height-rainLines[r]);
-      context.lineTo(width-80, height-rainLines[r]);
-	  context.stroke();
-    }
-    context.closePath();
-    context.font = "18px Verdana";
-    context.fillStyle = "gray";
-    context.fillText("Medium",width-80, height-rainLines[0]);
-    return element;
+    var rainChart = new Chart(context, {
+      type: 'bar',
+        data: {
+          labels: times,
+          datasets: [{
+            label: "rain",
+            data: intensity,
+            backgroundColor: '#0066ff',
+            pointRadius: 0,
+          }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          responsive: false,
+          scales: {
+            gridLines: {
+              display: true,
+            },
+            yAxes: [{
+              display: false,
+              ticks: {
+                suggestedMax: 1.5,
+              }
+            }],
+            xAxes: [{
+              barPercentage: 1,
+              categoryPercentage: 1,
+              ticks: {
+                fontColor: '#DDD',
+                fontSize: 18,
+                source: 'auto',
+                maxRotation: 0,
+                minRotation: 0,
+                mirror: true,
+              },
+            }]
+          },
+          legend: { display: false },
+          layout: {
+            padding: 0,
+          },
+          cubicInterpolationMode: "default",
+        }
+      });
+    return graph;
   },
 
   getDayFromTime: function (time) {
@@ -428,6 +480,9 @@ renderPrecipitationGraph: function (data) {
     var interval = 100 / total;
     var rowMinTemp = this.roundTemp(data.temperatureMin);
     var rowMaxTemp = this.roundTemp(data.temperatureMax);
+    var rgbMin = [0,0,0];
+    var rgbMax = [0,0,0];
+
 
     var row = document.createElement("tr");
     row.className = "forecast-row";
@@ -441,11 +496,7 @@ renderPrecipitationGraph: function (data) {
 
     var dayPrecipProb = document.createElement("span");
     dayPrecipProb.className = "forecast-precip-prob";
-    if (data.precipProbability > 0) {
-      dayPrecipProb.innerHTML = Math.round(data.precipProbability * 100) + "%";
-    } else {
-      dayPrecipProb.innerHTML = "&nbsp;";
-    }
+    dayPrecipProb.innerHTML = (Math.round(data.precipIntensity *10 * 24))/10 + "";
 
     var forecastBar = document.createElement("div");
     forecastBar.className = "forecast-bar";
@@ -477,6 +528,12 @@ renderPrecipitationGraph: function (data) {
 
     var forecastBarWrapper = document.createElement("td");
     forecastBarWrapper.appendChild(forecastBar);
+
+    var fbWidth = forecastBar.width;
+    var bgSize = ((250 / (10 * total)) * 650);       //forecast bar max width assumed to be 250. 65 Degrees Celsius span for background picture (-20°C to +45°C)
+    bar.style.backgroundSize = bgSize + "px auto";
+    var bgOffset = -(bgSize * ((rowMinTemp + 20) / 65)) - this.config.fcBarOffset; //move background picture on color scale.
+    bar.style.backgroundPosition = bgOffset + "px 0px";
 
     row.appendChild(dayTextSpan);
     row.appendChild(icon);
@@ -511,57 +568,6 @@ renderPrecipitationGraph: function (data) {
       display.appendChild(row);
     }
     return display;
-  },
-
-  renderWeatherBoy: function () {
-    var temp = this.weatherData.currently.temperature;
-    var icon = this.weatherData.currently.icon;
-    var posX, posY;
-    var wbY = this.config.wbHeight;
-    var wbX = Math.round(wbY * 0.6);
-    var wbSpriteWidth = wbX * 7;
-    switch (icon) {
-        case "clear-day":
-          posY = Math.round(-wbY * 0.115);
-          break;
-        case "rain":
-          posY = Math.round(-wbY * 2.115);
-          break;
-        default:
-          posY = Math.round(-wbY * 1.115);
-          console.log("Weather icon: "+icon);
-    }
-
-    if (temp < 0) {
-      posX = -(wbX * 6);
-    } else if (temp < 6) {
-      posX = -(wbX * 5);
-    } else if (temp < 10) {
-      posX = -(wbX * 4);
-    } else if (temp < 18) {
-      posX = -(wbX * 3);
-    } else if (temp < 25) {
-      posX = -(wbX * 2);
-    } else if (temp < 30) {
-      posX = -wbX;
-    } else {
-      posX = 0;
-    }
-
-
-    var wbContainer = document.createElement("div");
-    wbContainer.className = "wb-container";
-    var wb = document.createElement("div");
-    wb.id = "weatherboy";
-
-    wb.style.height = wbY+"px";
-    wb.style.width = wbX+"px";
-    wb.style.backgroundSize = wbSpriteWidth+"px auto";
-    wb.style.backgroundPositionX = posX+"px";
-    wb.style.backgroundPositionY = posY+"px";
-
-    wbContainer.appendChild(wb);
-    return wbContainer;
   },
 
   getLocation: function () {
