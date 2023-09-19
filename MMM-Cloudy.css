@@ -1,0 +1,131 @@
+.MMM-Cloudy .fa-triangle-exclamation {
+  color: yellow;
+}
+
+.MMM-Cloudy .wi-day-sunny {
+  color: yellow;
+}
+
+.MMM-Cloudy .wi-day-cloudy {
+  color: LightSkyBlue;
+}
+
+.MMM-Cloudy .wi-night-cloudy {
+  color: LightSkyBlue;
+}
+
+
+.MMM-Cloudy .wi-snow {
+  color: white;
+}
+
+.MMM-Cloudy .wi-rain {
+  color: DeepSkyBlue;
+}
+
+.MMM-Cloudy .wi-cloudy-gusts {
+  color: DeepSkyBlue;
+}
+
+.MMM-Cloudy .wi-day-cloudy {
+  color: Gold;
+}
+
+.MMM-Cloudy .wi-sunset {
+  color: Gold;
+}
+
+.MMM-Cloudy .wi-sunrise {
+  color: Gold;
+}
+
+
+.MMM-Cloudy .forecast-row .forecast-precip-prob {
+  font-size: 85%;
+}
+
+
+.MMM-Cloudy .extras {
+  margin-top: 10px;
+}
+
+.MMM-Cloudy .big-icon {
+  font-size: 75%;
+  line-height: 65px;
+  display: inline-block;
+  -ms-transform: translate(0, -3px); /* IE 9 */
+  -webkit-transform: translate(0, -3px); /* Safari */
+  transform: translate(0, -3px);
+}
+
+.MMM-Cloudy .forecast {
+  text-align: left;
+  min-width: 400px;
+  margin-top: 2ex;
+}
+
+.MMM-Cloudy .forecast-row {
+}
+
+.MMM-Cloudy .forecast-row>span {
+  display: table-cell;
+  width: 1px;
+  text-align: right;
+}
+
+.MMM-Cloudy .forecast-row .forecast-day {
+  text-align: left;
+  padding-right: 0.2em;
+}
+.MMM-Cloudy .forecast-row .weathericon {
+  text-align: center;
+  padding-right: 0.5em;
+}
+
+.MMM-Cloudy .forecast-bar {
+  display: table;
+  overflow: hidden;
+  padding-left: 10px;
+}
+
+.MMM-Cloudy .forecast-bar>span {
+  display: table-cell;
+  text-align: center;
+}
+
+.MMM-Cloudy .forecast-bar .bar {
+  #background-color: #aaa;
+  background-image: url("barcolors.png");
+  line-height: 0.8em;
+  border-radius: 1em;
+  border: 0.5ex transparent solid;
+  background-clip: padding-box;
+  color: black;
+}
+
+.MMM-Cloudy .canvasContainer {
+  position: relative;
+  top: 15px;
+}
+
+.MMM-Cloudy .cloudBarGraph {
+  left: 0px;
+  top: 0px;
+}
+
+.MMM-Cloudy .precipitation-graph {
+  position:absolute;
+  top: 0px;
+  left: 0px;
+}
+
+.MMM-Cloudy .precipitation-bg {
+  top: 12.5px;
+  /*border: 2px solid #cccccc;
+  padding: 5px;*/
+}
+
+.MMM-Cloudy .forecast-row .forecast-precip-prob {
+  font-size: 85%;
+}
+
